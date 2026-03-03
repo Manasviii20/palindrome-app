@@ -1,20 +1,23 @@
+// UC13: Performance Comparison of Palindrome Algorithms
+// Compile: javac UseCase13PalindromeCheckerApp.java
+// Run:     java UseCase13PalindromeCheckerApp
 
 import java.util.*;
 
-// Step 1: Define the Strategy Interface
+// Strategy Interface
 interface PalindromeStrategy {
     boolean checkPalindrome(String input);
+    String getName();
 }
 
-// Step 2: Implement Stack-based Strategy
+// Stack-based Strategy
 class StackStrategy implements PalindromeStrategy {
     @Override
     public boolean checkPalindrome(String input) {
         if (input == null || input.isEmpty()) return false;
-
         String normalized = input.replaceAll("\\s+", "").toLowerCase();
-        Stack<Character> stack = new Stack<>();
 
+        Stack<Character> stack = new Stack<>();
         for (char c : normalized.toCharArray()) {
             stack.push(c);
         }
@@ -26,17 +29,21 @@ class StackStrategy implements PalindromeStrategy {
 
         return normalized.equals(reversed.toString());
     }
+
+    @Override
+    public String getName() {
+        return "Stack Strategy";
+    }
 }
 
-// Step 3: Implement Deque-based Strategy
+// Deque-based Strategy
 class DequeStrategy implements PalindromeStrategy {
     @Override
     public boolean checkPalindrome(String input) {
         if (input == null || input.isEmpty()) return false;
-
         String normalized = input.replaceAll("\\s+", "").toLowerCase();
-        Deque<Character> deque = new ArrayDeque<>();
 
+        Deque<Character> deque = new ArrayDeque<>();
         for (char c : normalized.toCharArray()) {
             deque.addLast(c);
         }
@@ -48,47 +55,64 @@ class DequeStrategy implements PalindromeStrategy {
         }
         return true;
     }
-}
 
-// Step 4: Context Class to Inject Strategy
-class PalindromeChecker {
-    private PalindromeStrategy strategy;
-
-    public PalindromeChecker(PalindromeStrategy strategy) {
-        this.strategy = strategy;
-    }
-
-    public boolean check(String input) {
-        return strategy.checkPalindrome(input);
+    @Override
+    public String getName() {
+        return "Deque Strategy";
     }
 }
 
-// Step 5: Main Application
+// Simple Two-Pointer Strategy
+class TwoPointerStrategy implements PalindromeStrategy {
+    @Override
+    public boolean checkPalindrome(String input) {
+        if (input == null || input.isEmpty()) return false;
+        String normalized = input.replaceAll("\\s+", "").toLowerCase();
+
+        int left = 0;
+        int right = normalized.length() - 1;
+        while (left < right) {
+            if (normalized.charAt(left) != normalized.charAt(right)) {
+                return false;
+            }
+            left++;
+            right--;
+        }
+        return true;
+    }
+
+    @Override
+    public String getName() {
+        return "Two-Pointer Strategy";
+    }
+}
+
+// Main Application
 public class PalindromeCheckerApp {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("=== Palindrome Checker App (Strategy Pattern) ===");
+        System.out.println("=== Palindrome Checker App (Performance Comparison) ===");
         System.out.print("Enter a string to check: ");
         String input = scanner.nextLine();
 
-        System.out.println("Choose strategy: 1) Stack  2) Deque");
-        int choice = scanner.nextInt();
+        // List of strategies to compare
+        List<PalindromeStrategy> strategies = Arrays.asList(
+                new StackStrategy(),
+                new DequeStrategy(),
+                new TwoPointerStrategy()
+        );
 
-        PalindromeStrategy strategy;
-        if (choice == 1) {
-            strategy = new StackStrategy();
-        } else {
-            strategy = new DequeStrategy();
-        }
+        // Run each strategy and measure execution time
+        for (PalindromeStrategy strategy : strategies) {
+            long startTime = System.nanoTime();
+            boolean result = strategy.checkPalindrome(input);
+            long endTime = System.nanoTime();
+            long duration = endTime - startTime;
 
-        PalindromeChecker checker = new PalindromeChecker(strategy);
-        boolean result = checker.check(input);
-
-        if (result) {
-            System.out.println("\"" + input + "\" is a palindrome.");
-        } else {
-            System.out.println("\"" + input + "\" is NOT a palindrome.");
+            System.out.println(strategy.getName() + ": "
+                    + (result ? "Palindrome" : "Not Palindrome")
+                    + " | Time: " + duration + " ns");
         }
 
         scanner.close();
